@@ -7,18 +7,45 @@ import time
 def main():
     INPUT_FILE = "input.txt"
     OUTPUT_FILE = "results.txt"
-    KEYS = ["АОАОА", "МИР", "КЛЮЧ", "СЕКРЕТ", "АНАЛИЗ"]
+    KEYS_FILE = "keys.txt"  # Файл с дополнительными ключами
+    DEFAULT_KEYS = ["АОАОА", "МИР", "КЛЮЧ", "СЕКРЕТ", "АНАЛИЗ"]  # Ключи по умолчанию
 
     if not os.path.exists(INPUT_FILE):
         print(f"Ошибка: файл {INPUT_FILE} не найден!")
         return
+
+    # Сбор всех ключей (по умолчанию + из файла)
+    all_keys = DEFAULT_KEYS.copy()
+
+    if os.path.exists(KEYS_FILE):
+        try:
+            with open(KEYS_FILE, "r", encoding="utf-8") as f_keys:
+                file_keys = [line.strip() for line in f_keys]
+                file_keys = [k for k in file_keys if k]  # Фильтрация пустых ключей
+                print(f"Найдено {len(file_keys)} ключей в файле {KEYS_FILE}")
+                all_keys.extend(file_keys)
+        except Exception as e:
+            print(f"Ошибка при чтении {KEYS_FILE}: {e}")
+    else:
+        print(f"Файл {KEYS_FILE} не найден, используются только ключи по умолчанию")
+
+    # Удаление дубликатов с сохранением порядка
+    unique_keys = []
+    seen = set()
+    for key in all_keys:
+        if key not in seen:
+            seen.add(key)
+            unique_keys.append(key)
+
+    print(f"Всего уникальных ключей для теста: {len(unique_keys)}")
 
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         plaintext = f.read()
 
     results = []
 
-    for key in KEYS:
+    for key in unique_keys:
+        # ... (остальной код без изменений)
         # Шифрование
         start_time = time.time()
         ciphertext = vigenere.vigenere_encrypt(plaintext, key)
@@ -106,9 +133,6 @@ def main():
             f.write(f"Шифртекст (начало): {res['ciphertext']}\n")
             f.write(
                 f"Расшифровано найденным ключом (начало): {res['decrypted_with_found']}\n"
-            )
-            f.write(
-                f"Расшифровано исходным ключом (начало): {res['decrypted_with_original']}\n"
             )
             f.write("-" * 80 + "\n")
 
